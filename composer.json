@@ -1,0 +1,33 @@
+{
+    "name": "drupal/openshift_api",
+    "type": "drupal-module",
+    "description": "OpenShift API Drupal Module",
+    "keywords": ["openshift"],
+    "homepage": "http://drupal.org/project/openshift_api",
+    "license": "GPL-2.0+",
+    "authors": [
+        {
+            "name": "Brent Dunn",
+            "email": "bdunn@redhat.com",
+            "homepage": "https://redhat.com/"
+        },
+        {
+            "name": "Michael Nielson",
+            "email": "mnielson@redhat.com",
+            "homepage": "https://redhat.com/"
+        },
+        {
+            "name": "Don Pickerel",
+            "email": "dpickerel@redhat.com",
+            "homepage": "https://redhat.com/"
+        },
+        {
+            "name": "Derek Reese",
+            "email": "dreese@redhat.com",
+            "homepage": "https://redhat.com/"
+        }
+    ],
+    "require": {
+        "guzzle/guzzle": "3.*"
+    }
+}

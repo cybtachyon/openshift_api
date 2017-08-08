@@ -1,0 +1,24 @@
+<?php
+
+/**
+ * @file
+ * Install/uninstall functions for the OpenShift API module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function openshift_api_uninstall() {
+  variable_del('openshift_api_origin');
+  variable_del('openshift_api_secret');
+}
+
+/**
+ * Implements hook_schema().
+ */
+function openshift_api_schema() {
+  $schema = array();
+  $schema['cache_openshift_api'] = drupal_get_schema_unprocessed('system', 'cache');
+  $schema['cache_openshift_api']['description'] = 'Cache table for storing OpenShift API Connections.';
+  return $schema;
+}

@@ -1,0 +1,125 @@
+<?php
+
+/**
+ * @file
+ * Module file for the Drupal OpenShift API module.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function openshift_api_menu() {
+  $items['admin/config/services/openShift/settings'] = array(
+    'title' => 'Settings',
+    'description' => 'Configure settings for the OpenShift API.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('openshift_api_settings'),
+    'access arguments' => array('administer site configuration'),
+  );
+
+  return $items;
+}
+
+/**
+ * Form builder; The OpenShift API Config form.
+ *
+ * @return array
+ *   The system settings form structure.
+ *
+ * @ingroup forms
+ *
+ * @see system_settings_form()
+ */
+function openshift_api_settings() {
+  $form['openshift_api'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('OpenShift API Settings'),
+  );
+  $form['openshift_api']['openshift_api_origin'] = array(
+    '#type' => 'select',
+    '#title' => t('OpenShift API Origin'),
+    '#default_value' => variable_get('openshift_api_origin', 'https://openshift.redhat.com:8443'),
+    '#options' => drupal_map_assoc(array('https://openshift.redhat.com:8443')),
+    '#description' => t('The OpenShift API Origin Point.'),
+  );
+  $form['openshift_api']['openshift_api_secret'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Secret'),
+    '#default_value' => variable_get('openshift_api_secret', ''),
+    '#description' => t('The OpenShift API Secret in JSON Web Token form.'),
+  );
+
+  $form['#validate'][] = 'openshift_api_settings_validate';
+
+  return system_settings_form($form);
+}
+
+/**
+ * Validates the submitted settings form.
+ *
+ * @param array $form
+ *   The Drupal Form Array.
+ * @param array $form_state
+ *   The Drupal Form State Array.
+ */
+function openshift_api_settings_validate(array $form, array &$form_state) {
+  // Validate that the secret is base64 encoded.
+  $secret = $form_state['values']['openshift_api_secret'];
+  $jwt_keys = array(
+    0 => array(
+      'header' => array(
+        'alg',
+        'typ',
+      ),
+    ),
+    1 => array(
+      'payload' => array(
+        'iss',
+        'kubernetes.io/serviceaccount/namespace',
+        'kubernetes.io/serviceaccount/secret.name',
+        'kubernetes.io/serviceaccount/service-account.name',
+        'kubernetes.io/serviceaccount/service-account.uid',
+        'sub',
+      ),
+    ),
+  );
+  if (!empty($secret) && !preg_match('/^[a-zA-Z0-9\/\r\n+]*={0,2}$/', $secret)) {
+    $jwt_parts = explode('.', $secret);
+    if (count($jwt_parts) < 3) {
+      $error = t('The secret is not a JSON Web Token - make sure all three parts are included.');
+      form_set_error('openshift_api_secret', $error);
+      return;
+    }
+    /** @var array $jwt_part */
+    foreach ($jwt_keys as $index => $jwt_part) {
+      $part_names = array_keys($jwt_part);
+      $part_name = reset($part_names);
+      $part_decoded = base64_decode($jwt_parts[$index], TRUE);
+      if (trim(@base64_encode($part_decoded), '=') !== $jwt_parts[$index]) {
+        $error = t("The JWT %part does not appear to be base64 encoded, perhaps use '%encode'?.",
+          array(
+            '%part' => $part_name,
+            '%encode' => base64_encode($jwt_parts[$index]),
+          ));
+        form_set_error('openshift_api_secret', $error);
+        continue;
+      }
+      $part_data = drupal_json_decode($part_decoded);
+      foreach (reset($jwt_part) as $part_key) {
+        if (!isset($part_data[$part_key])) {
+          $error = t('The JWT Header is missing the %key property.',
+            array('%key' => $part_key));
+          form_set_error('openshift_api_secret', $error);
+        }
+      }
+    }
+  }
+
+}
+
+/**
+ * Implements hook_flush_caches().
+ */
+function openshift_api_flush_caches() {
+  return array('cache_openshift_api');
+}
