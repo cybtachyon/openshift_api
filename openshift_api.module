@@ -65,7 +65,7 @@ function openshift_api_settings() {
 function openshift_api_settings_validate(array $form, array &$form_state) {
   // Validate that the secret is a JSON Web Token.
   $secret = $form_state['values']['openshift_api_secret'];
-  foreach (OpenshiftApi::validateJwt($secret) as $error) {
+  foreach (OpenShiftApi::validateJwt($secret) as $error) {
     form_set_error('openshift_api_secret', $error);
   }
 

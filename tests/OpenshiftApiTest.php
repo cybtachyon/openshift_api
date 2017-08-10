@@ -2,21 +2,21 @@
 
 namespace openshift_api\Tests;
 
-use OpenshiftApi;
+use OpenShiftApi;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Class OpenshiftApiTest.
+ * Class OpenShiftApiTest.
  *
  * @package openshift_api\Tests
  */
-class OpenshiftApiTest extends TestCase {
+class OpenShiftApiTest extends TestCase {
 
   /**
-   * Tests the OpenshiftApi::__construct() method.
+   * @covers ::__construct.
    */
-  public function testOpenshiftApi() {
-    $osc = new OpenshiftApi();
+  public function testOpenShiftApi() {
+    $osc = new OpenShiftApi();
 
     $actual_response = $osc->getBuildConfigs('testopenshiftdrupal');
     $example_json = <<<JSON

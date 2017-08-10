@@ -3,6 +3,6 @@ description = Defines an API that enables modules to interact with the OpenShift
 package = Services
 core = 7.x
 configure = admin/config/openshift
-files[] = OpenshiftApi.php
+files[] = src/OpenShiftApi.php
 dependencies[] = composer_manager
 dependencies[] = libraries (2.x)
