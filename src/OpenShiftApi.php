@@ -14,12 +14,12 @@ use Guzzle\Http\Client;
 use Guzzle\Http\ClientInterface;
 
 /**
- * Class OpenshiftApi.
+ * Class OpenShiftApi.
  */
-class OpenshiftApi {
+class OpenShiftApi {
 
   /**
-   * Openshift JWT required keys.
+   * OpenShift JWT required keys.
    *
    * @var array
    */
@@ -62,7 +62,7 @@ class OpenshiftApi {
   private $client;
 
   /**
-   * OpenshiftConnection constructor.
+   * OpenShiftConnection constructor.
    *
    * @param Guzzle\Http\ClientInterface $client
    *   An HTTP Client for accessing Open Shift.
