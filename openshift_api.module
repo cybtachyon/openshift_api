@@ -63,56 +63,10 @@ function openshift_api_settings() {
  *   The Drupal Form State Array.
  */
 function openshift_api_settings_validate(array $form, array &$form_state) {
-  // Validate that the secret is base64 encoded.
+  // Validate that the secret is a JSON Web Token.
   $secret = $form_state['values']['openshift_api_secret'];
-  $jwt_keys = array(
-    0 => array(
-      'header' => array(
-        'alg',
-        'typ',
-      ),
-    ),
-    1 => array(
-      'payload' => array(
-        'iss',
-        'kubernetes.io/serviceaccount/namespace',
-        'kubernetes.io/serviceaccount/secret.name',
-        'kubernetes.io/serviceaccount/service-account.name',
-        'kubernetes.io/serviceaccount/service-account.uid',
-        'sub',
-      ),
-    ),
-  );
-  if (!empty($secret) && !preg_match('/^[a-zA-Z0-9\/\r\n+]*={0,2}$/', $secret)) {
-    $jwt_parts = explode('.', $secret);
-    if (count($jwt_parts) < 3) {
-      $error = t('The secret is not a JSON Web Token - make sure all three parts are included.');
-      form_set_error('openshift_api_secret', $error);
-      return;
-    }
-    /** @var array $jwt_part */
-    foreach ($jwt_keys as $index => $jwt_part) {
-      $part_names = array_keys($jwt_part);
-      $part_name = reset($part_names);
-      $part_decoded = base64_decode($jwt_parts[$index], TRUE);
-      if (trim(@base64_encode($part_decoded), '=') !== $jwt_parts[$index]) {
-        $error = t("The JWT %part does not appear to be base64 encoded, perhaps use '%encode'?.",
-          array(
-            '%part' => $part_name,
-            '%encode' => base64_encode($jwt_parts[$index]),
-          ));
-        form_set_error('openshift_api_secret', $error);
-        continue;
-      }
-      $part_data = drupal_json_decode($part_decoded);
-      foreach (reset($jwt_part) as $part_key) {
-        if (!isset($part_data[$part_key])) {
-          $error = t('The JWT Header is missing the %key property.',
-            array('%key' => $part_key));
-          form_set_error('openshift_api_secret', $error);
-        }
-      }
-    }
+  foreach (OpenshiftApi::validateJwt($secret) as $error) {
+    form_set_error('openshift_api_secret', $error);
   }
 
 }
