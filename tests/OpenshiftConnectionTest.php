@@ -2,21 +2,22 @@
 
 namespace openshift_api\Tests;
 
-use OpenshiftConnection;
-use \PHPUnit\Framework\TestCase;
+use OpenShiftApi;
+use PHPUnit\Framework\TestCase;
 
 /**
- * Class OpenshiftConnectionTest.
+ * Class OpenShiftApiTest.
  *
  * @package openshift_api\Tests
+ * @coversDefaultClass OpenShiftApi
  */
-class OpenshiftConnectionTest extends TestCase {
+class OpenShiftApiTest extends TestCase {
 
   /**
-   * Tests the OpenshiftConnection::__construct() method.
+   * @covers ::__construct
    */
-  public function testOpenshiftConnection() {
-    $osc = new OpenshiftConnection();
+  public function testOpenShiftApiConstructor() {
+    $osc = new OpenShiftApi();
 
     $actual_response = $osc->get('namespaces/testopenshiftconnection/builds');
     $example_json = <<<JSON
@@ -31,7 +32,7 @@ class OpenshiftConnectionTest extends TestCase {
 }
 JSON;
 
-    $this->assertNotEmpty($actual_response, 'Openshift Connection not made.');
+    $this->assertNotEmpty($actual_response, 'OpenShiftApi connection not made.');
     $this->assertObjectNotHasAttribute('error', $actual_response);
     $this->assertObjectHasAttribute('items', $actual_response, '');
     $this->assertEquals($example_json, $actual_response);
