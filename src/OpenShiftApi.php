@@ -292,6 +292,7 @@ class OpenShiftApi {
    * @endcode
    *
    * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#v1-buildconfig
+   * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#partially-update-the-specified-buildconfig
    */
   public function setBuildConfig($pid, $config_name, array $config) {
     $headers = array(
@@ -308,6 +309,42 @@ class OpenShiftApi {
       throw $exception;
     }
     return ($request->getResponse() !== NULL && $request->getResponse()->getStatusCode() === 200);
+  }
+
+  /**
+   * Instantiates a new build request for a build configuration.
+   *
+   * @param string $pid
+   *   The OpenShift project ID.
+   * @param string $config_name
+   *   The OpenShift build config name tag.
+   * @param array $config
+   *   The build request array to build.
+   *
+   * @return array|mixed
+   *   A BuildRequest response body array upon success, empty otherwise.
+   *
+   * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#create-instantiate-of-a-buildrequest
+   * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#v1-buildrequest
+   */
+  public function instantiateBuild($pid, $config_name, array $config) {
+    $headers = array(
+      'Content-Type' => 'application/json',
+    );
+    $request = $this->client->post("namespaces/$pid/buildconfigs/$config_name/instantiate", $headers, drupal_json_encode($config));
+    try {
+      $response = $request->send();
+    }
+    catch (RuntimeException $exception) {
+      if ($request->getResponse() !== NULL && $request->getResponse()->getStatusCode() !== 201) {
+        return array();
+      }
+      throw $exception;
+    }
+    if ($body = $response->getBody()) {
+      return drupal_json_decode($body);
+    }
+    return array();
   }
 
   /**
