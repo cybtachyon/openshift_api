@@ -73,7 +73,7 @@ class OpenShiftApi {
   public function __construct(ClientInterface $client = NULL) {
     $this->apiSecret = variable_get('openshift_api_secret', '');
     $base_url = variable_get('openshift_api_origin', 'https://openshift.redhat.com:8443');
-    $base_url = trim($base_url, '/') . '/oapi/v1';
+    $base_url = trim($base_url, '/');
 
     try {
       $this->client = $client ?: new Client($base_url, array(
@@ -168,7 +168,7 @@ class OpenShiftApi {
       $config += $defaults;
       $config['spec'] += $defaults_spec;
     }
-    $request = $this->client->post("namespaces/$pid/buildconfigs", $headers, drupal_json_encode($config));
+    $request = $this->client->post("oapi/v1/namespaces/$pid/buildconfigs", $headers, drupal_json_encode($config));
     try {
       $request->send();
     }
@@ -193,7 +193,7 @@ class OpenShiftApi {
    *   Signifies an issue has occurred generating an HTTP Request.
    */
   public function deleteBuildConfig($pid, $build_id) {
-    $request = $this->client->delete("namespaces/$pid/buildconfigs/$build_id");
+    $request = $this->client->delete("oapi/v1/namespaces/$pid/buildconfigs/$build_id");
     try {
       $request->send();
     }
@@ -218,7 +218,7 @@ class OpenShiftApi {
    *   Signifies an issue has occurred generating an HTTP Request.
    */
   public function getBuildConfig($pid, $build_id) {
-    $request = $this->client->get("namespaces/$pid/buildconfigs/$build_id");
+    $request = $this->client->get("oapi/v1/namespaces/$pid/buildconfigs/$build_id");
     try {
       $response = $request->send();
     }
@@ -247,7 +247,7 @@ class OpenShiftApi {
    *   Signifies an issue has occurred generating an HTTP Request.
    */
   public function getBuildConfigs($pid) {
-    $request = $this->client->get("namespaces/$pid/builds");
+    $request = $this->client->get("oapi/v1/namespaces/$pid/builds");
     try {
       $response = $request->send();
     }
@@ -300,6 +300,7 @@ class OpenShiftApi {
     );
     $request = $this->client->patch(
       "namespaces/$pid/buildconfigs/$config_name",
+      "oapi/v1/namespaces/$pid/buildconfigs/$config_name",
       $headers,
       drupal_json_encode($config));
     try {
@@ -331,7 +332,7 @@ class OpenShiftApi {
     $headers = array(
       'Content-Type' => 'application/json',
     );
-    $request = $this->client->post("namespaces/$pid/buildconfigs/$config_name/instantiate", $headers, drupal_json_encode($config));
+    $request = $this->client->post("oapi/v1/namespaces/$pid/buildconfigs/$config_name/instantiate", $headers, drupal_json_encode($config));
     try {
       $response = $request->send();
     }
@@ -404,7 +405,7 @@ class OpenShiftApi {
     if ($use_defaults) {
       $config += $defaults;
     }
-    $request = $this->client->post("namespaces/$pid/imagestreams", $headers, drupal_json_encode($config));
+    $request = $this->client->post("oapi/v1/namespaces/$pid/imagestreams", $headers, drupal_json_encode($config));
     try {
       $request->send();
     }
@@ -431,7 +432,7 @@ class OpenShiftApi {
    * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#list-or-watch-objects-of-kind-imagestream
    */
   public function getImageStream($pid, $stream_id) {
-    $request = $this->client->get("namespaces/$pid/imagestreams/$stream_id");
+    $request = $this->client->get("oapi/v1/namespaces/$pid/imagestreams/$stream_id");
     try {
       $response = $request->send();
     }
@@ -462,7 +463,7 @@ class OpenShiftApi {
    * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#list-or-watch-objects-of-kind-imagestream
    */
   public function getImageStreams($pid) {
-    $request = $this->client->get("namespaces/$pid/imagestreams");
+    $request = $this->client->get("oapi/v1/namespaces/$pid/imagestreams");
     try {
       $response = $request->send();
     }
