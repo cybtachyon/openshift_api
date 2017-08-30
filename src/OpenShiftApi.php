@@ -327,6 +327,86 @@ class OpenShiftApi {
   }
 
   /**
+   * Returns the builds for a specific OpenShift project ID.
+   *
+   * @param string $pid
+   *   Project ID.
+   *
+   * @return array
+   *   Array of build items
+   */
+  public function getBuilds($pid) {
+    $request = $this->client->get("oapi/v1/namespaces/$pid/builds");
+    try {
+      $response = $request->send();
+    }
+    catch (RuntimeException $exception) {
+      throw $exception;
+    }
+    if ($body = $response->getBody()) {
+      $data = drupal_json_decode($body);
+      return isset($data['items']) ? $data['items'] : array();
+    }
+    return array();
+  }
+
+  /**
+   * Retrieve the build log for the provided build.
+   *
+   * @param int $pid
+   *   Unique container ID.
+   * @param string $build_name
+   *   The build name to query for a build log.
+   *
+   * @return string|null
+   *   Returns a Build Log.
+   *
+   * @throws RuntimeException
+   *   Signifies an issue has occurred generating an HTTP Request.
+   */
+  public function getBuildLog($pid, $build_name) {
+    $request = $this->client->get("oapi/v1/namespaces/$pid/builds/$build_name/log");
+    try {
+      $response = $request->send();
+    }
+    catch (RuntimeException $exception) {
+      throw $exception;
+    }
+    if ($body = $response->getBody()) {
+      return (string) $body;
+    }
+    return NULL;
+  }
+
+  /**
+   * Retrieve the build detail for the provided build.
+   *
+   * @param int $pid
+   *   Unique container ID.
+   * @param string $build_name
+   *   The build name to query for build details.
+   *
+   * @return array
+   *   Returns the build details.
+   *
+   * @throws RuntimeException
+   *   Signifies an issue has occurred generating an HTTP Request.
+   */
+  public function getBuildDetail($pid, $build_name) {
+    $request = $this->client->get("oapi/v1/namespaces/$pid/builds/$build_name");
+    try {
+      $response = $request->send();
+    }
+    catch (RuntimeException $exception) {
+      throw $exception;
+    }
+    if ($body = $response->getBody()) {
+      return drupal_json_decode($body);
+    }
+    return array();
+  }
+
+  /**
    * Instantiates a new build request for a build configuration.
    *
    * @param string $pid
