@@ -291,18 +291,32 @@ class OpenShiftApi {
    * $osa->createBuildConfig('p12345', $config);
    * @endcode
    *
+   * Note: The PATCH mechanism relies on NULL values to unset keys in the API.
+   * This, however is only an issue if values would also need to support being
+   * set to NULL. Currently, no keys for Open Shift build configs support a NULL
+   * value so we're good to use NULL values with PATCH to update build configs.
+   *
    * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#v1-buildconfig
    * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#partially-update-the-specified-buildconfig
    */
   public function setBuildConfig($pid, $config_name, array $config) {
+    if (!array_walk_recursive($config, function (&$value, $key) {
+      $value = $value === '' ? NULL : $value;
+    })) {
+      return FALSE;
+    }
+    // Some fields need their parent key set to NULL in order to be unset.
+    if (isset($config['spec']['source']['sourceSecret']) && $config['spec']['source']['sourceSecret']['name'] === NULL) {
+      $config['spec']['source']['sourceSecret'] = NULL;
+    }
     $headers = array(
       'Content-Type' => 'application/strategic-merge-patch+json',
     );
+    $build_config = drupal_json_encode($config);
     $request = $this->client->patch(
-      "namespaces/$pid/buildconfigs/$config_name",
       "oapi/v1/namespaces/$pid/buildconfigs/$config_name",
       $headers,
-      drupal_json_encode($config));
+      $build_config);
     try {
       $request->send();
     }
@@ -321,17 +335,35 @@ class OpenShiftApi {
    *   The OpenShift build config name tag.
    * @param array $config
    *   The build request array to build.
+   * @param bool $use_defaults
+   *   Set to TRUE to use recommended defaults.
    *
    * @return array|mixed
    *   A BuildRequest response body array upon success, empty otherwise.
    *
+   * @throws RuntimeException
+   *   Signifies an issue has occurred generating an HTTP Request.
+   *
    * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#create-instantiate-of-a-buildrequest
    * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#v1-buildrequest
    */
-  public function instantiateBuild($pid, $config_name, array $config) {
+  public function instantiateBuild($pid, $config_name, array $config, $use_defaults = TRUE) {
     $headers = array(
       'Content-Type' => 'application/json',
     );
+    $defaults = array(
+      'kind' => 'BuildRequest',
+      'apiVersion' => 'v1',
+      'metadata' => array(),
+      'triggeredBy' => array(),
+    );
+    $metadata_defaults = array(
+      'creationTimestamp' => self::getTimestamp(),
+    );
+    if ($use_defaults) {
+      $config += $defaults;
+      $config['metadata'] += $metadata_defaults;
+    }
     $request = $this->client->post("oapi/v1/namespaces/$pid/buildconfigs/$config_name/instantiate", $headers, drupal_json_encode($config));
     try {
       $response = $request->send();
@@ -392,7 +424,7 @@ class OpenShiftApi {
       'kind' => 'ImageStream',
       'apiVersion' => 'v1',
       'metadata' => array(
-        'creationTimestamp' => REQUEST_TIME,
+        'creationTimestamp' => self::getTimestamp(),
         'labels' => array(
           'build' => $config['metadata']['name'],
         ),
