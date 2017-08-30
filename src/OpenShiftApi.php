@@ -480,8 +480,134 @@ class OpenShiftApi {
   /**
    * @}
    *
+   * Methods related to Open Shift Source Secrets.
+   *
+   * @ingroup secrets
+   */
+
+  /**
+   * Creates a new OpenShift source secret.
+   *
+   * @param string $pid
+   *   The OpenShift project ID.
+   * @param array $data
+   *   The secret description used to create the secret.
+   * @param bool $use_defaults
+   *   Set to TRUE to use the secret description defaults.
+   *
+   * @return bool
+   *   Returns TRUE if the secret creation succeeded.
+   *
+   * @throws RuntimeException
+   *   Signifies an issue has occurred generating an HTTP Request.
+   */
+  public function createSourceSecret($pid, array $data, $use_defaults = TRUE) {
+    $headers = array(
+      'Content-Type' => 'application/json',
+    );
+    $defaults = array(
+      'kind' => 'Secret',
+      'apiVersion' => 'v1',
+      'metadata' => array(
+        'name' => 'scmsecret',
+        'creationTimestamp' => self::getTimestamp(),
+      ),
+      'data' => array(),
+      'type' => 'Opaque',
+    );
+    if ($use_defaults) {
+      $data += $defaults;
+    }
+    $request = $this->client->post("api/v1/namespaces/$pid/secrets", $headers, drupal_json_encode($data));
+    try {
+      $request->send();
+    }
+    catch (RuntimeException $exception) {
+      throw $exception;
+    }
+    return ($request->getResponse() !== NULL && $request->getResponse()->getStatusCode() === 201);
+  }
+
+  /**
+   * Deletes the specified OpenShift source secret.
+   *
+   * @param string $pid
+   *   The OpenShift project ID from which to remove the secret.
+   * @param string $secret_name
+   *   The OpenShift secret name to remove.
+   *
+   * @return bool
+   *   Returns TRUE if the operation succeeded.
+   *
+   * @throws RuntimeException
+   *   Signifies an issue has occurred generating an HTTP Request.
+   */
+  public function deleteSourceSecret($pid, $secret_name) {
+    $request = $this->client->delete("api/v1/namespaces/$pid/secrets/$secret_name");
+    try {
+      $request->send();
+    }
+    catch (RuntimeException $exception) {
+      throw $exception;
+    }
+    return ($request->getResponse() !== NULL && $request->getResponse()->getStatusCode() === 200);
+  }
+
+  /**
+   * Gets an OpenShift Secret by project and name.
+   *
+   * @param string $pid
+   *   The OpenShift project ID.
+   * @param string $secret_id
+   *   The OpenShift secret name.
+   *
+   * @return array
+   *   An OpenShift secret description.
+   *
+   * @throws RuntimeException
+   *   Signifies an issue has occurred generating an HTTP Request.
+   *
+   * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#list-or-watch-objects-of-kind-imagestream
+   */
+  public function getSourceSecret($pid, $secret_id) {
+    $request = $this->client->get("api/v1/namespaces/$pid/secrets/$secret_id");
+    try {
+      $response = $request->send();
+    }
+    catch (RuntimeException $exception) {
+      if ($request->getResponse() !== NULL && $request->getResponse()->getStatusCode() === 404) {
+        return array();
+      }
+      throw $exception;
+    }
+    if ($body = $response->getBody()) {
+      return drupal_json_decode($body);
+    }
+    return array();
+  }
+
+  /**
+   * @}
+   *
    * @ingroup utility
    */
+
+  /**
+   * Returns an OpenShift compatbile timestamp.
+   *
+   * @param int $ts
+   *   An optional integer timestamp to convert.
+   *
+   * @return string
+   *   OpenShift compatible timestamp.
+   */
+  public static function getTimestamp($ts = NULL) {
+    $ts = $ts ?: REQUEST_TIME;
+    // Timezone appears to not be supported at this time.
+    return date('Y-m-d', $ts)
+      . 'T' . date('H:i:s', $ts)
+      . 'Z';
+  }
 
   /**
    * Validates a JSON Web Token as much as possible without the key.
