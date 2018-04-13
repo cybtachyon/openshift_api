@@ -43,7 +43,7 @@ function openshift_api_settings() {
     '#description' => t('The OpenShift API Origin Point.'),
   );
   $form['openshift_api']['openshift_api_secret'] = array(
-    '#type' => 'textfield',
+    '#type' => 'textarea',
     '#title' => t('Secret'),
     '#default_value' => variable_get('openshift_api_secret', ''),
     '#description' => t('The OpenShift API Secret in JSON Web Token form.'),
