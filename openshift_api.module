@@ -77,3 +77,17 @@ function openshift_api_settings_validate(array $form, array &$form_state) {
 function openshift_api_flush_caches() {
   return array('cache_openshift_api');
 }
+
+/**
+ * Logs a debug message.
+ *
+ * @param string $request
+ *   The message to debug.
+ */
+function openshift_api_debug($request) {
+  $caller = _drupal_get_last_caller(debug_backtrace());
+  watchdog('openshift_api', '<pre>@method</pre> <pre>@message</pre>', array(
+    '@method' => $caller['function'],
+    '@message' => print_r($request, TRUE),
+  ), WATCHDOG_DEBUG);
+}

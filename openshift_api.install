@@ -11,6 +11,7 @@
 function openshift_api_uninstall() {
   variable_del('openshift_api_origin');
   variable_del('openshift_api_secret');
+  variable_del('openshift_api_debug');
 }
 
 /**

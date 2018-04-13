@@ -175,6 +175,9 @@ class OpenShiftApi {
     catch (RuntimeException $exception) {
       throw $exception;
     }
+    if (variable_get('openshift_api_debug')) {
+      openshift_api_debug($request);
+    }
     return ($request->getResponse() !== NULL && $request->getResponse()->getStatusCode() === 201);
   }
 
@@ -199,6 +202,9 @@ class OpenShiftApi {
     }
     catch (RuntimeException $exception) {
       throw $exception;
+    }
+    if (variable_get('openshift_api_debug')) {
+      openshift_api_debug($request);
     }
     return ($request->getResponse() !== NULL && $request->getResponse()->getStatusCode() === 200);
   }
@@ -228,6 +234,9 @@ class OpenShiftApi {
       }
       throw $exception;
     }
+    if (variable_get('openshift_api_debug')) {
+      openshift_api_debug($request);
+    }
     if ($body = $response->getBody()) {
       return drupal_json_decode($body);
     }
@@ -253,6 +262,9 @@ class OpenShiftApi {
     }
     catch (RuntimeException $exception) {
       throw $exception;
+    }
+    if (variable_get('openshift_api_debug')) {
+      openshift_api_debug($request);
     }
     if ($body = $response->getBody()) {
       $data = drupal_json_decode($body);
@@ -323,6 +335,9 @@ class OpenShiftApi {
     catch (RuntimeException $exception) {
       throw $exception;
     }
+    if (variable_get('openshift_api_debug')) {
+      openshift_api_debug($request);
+    }
     return ($request->getResponse() !== NULL && $request->getResponse()->getStatusCode() === 200);
   }
 
@@ -342,6 +357,9 @@ class OpenShiftApi {
     }
     catch (RuntimeException $exception) {
       throw $exception;
+    }
+    if (variable_get('openshift_api_debug')) {
+      openshift_api_debug($request);
     }
     if ($body = $response->getBody()) {
       $data = drupal_json_decode($body);
@@ -372,6 +390,9 @@ class OpenShiftApi {
     catch (RuntimeException $exception) {
       throw $exception;
     }
+    if (variable_get('openshift_api_debug')) {
+      openshift_api_debug($request);
+    }
     if ($body = $response->getBody()) {
       return (string) $body;
     }
@@ -399,6 +420,9 @@ class OpenShiftApi {
     }
     catch (RuntimeException $exception) {
       throw $exception;
+    }
+    if (variable_get('openshift_api_debug')) {
+      openshift_api_debug($request);
     }
     if ($body = $response->getBody()) {
       return drupal_json_decode($body);
@@ -453,6 +477,9 @@ class OpenShiftApi {
         return array();
       }
       throw $exception;
+    }
+    if (variable_get('openshift_api_debug')) {
+      openshift_api_debug($request);
     }
     if ($body = $response->getBody()) {
       return drupal_json_decode($body);
@@ -524,6 +551,9 @@ class OpenShiftApi {
     catch (RuntimeException $exception) {
       throw $exception;
     }
+    if (variable_get('openshift_api_debug')) {
+      openshift_api_debug($request);
+    }
     return ($request->getResponse() !== NULL && $request->getResponse()->getStatusCode() === 201);
   }
 
@@ -553,6 +583,9 @@ class OpenShiftApi {
         return array();
       }
       throw $exception;
+    }
+    if (variable_get('openshift_api_debug')) {
+      openshift_api_debug($request);
     }
     if ($body = $response->getBody()) {
       return drupal_json_decode($body);
@@ -637,6 +670,9 @@ class OpenShiftApi {
     catch (RuntimeException $exception) {
       throw $exception;
     }
+    if (variable_get('openshift_api_debug')) {
+      openshift_api_debug($request);
+    }
     return ($request->getResponse() !== NULL && $request->getResponse()->getStatusCode() === 201);
   }
 
@@ -661,6 +697,9 @@ class OpenShiftApi {
     }
     catch (RuntimeException $exception) {
       throw $exception;
+    }
+    if (variable_get('openshift_api_debug')) {
+      openshift_api_debug($request);
     }
     return ($request->getResponse() !== NULL && $request->getResponse()->getStatusCode() === 200);
   }
@@ -691,6 +730,9 @@ class OpenShiftApi {
         return array();
       }
       throw $exception;
+    }
+    if (variable_get('openshift_api_debug')) {
+      openshift_api_debug($request);
     }
     if ($body = $response->getBody()) {
       return drupal_json_decode($body);
