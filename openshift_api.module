@@ -9,9 +9,9 @@
  * Implements hook_menu().
  */
 function openshift_api_menu() {
-  $items['admin/config/services/openShift/settings'] = array(
-    'title' => 'Settings',
-    'description' => 'Configure settings for the OpenShift API.',
+  $items['admin/config/services/openshift_api'] = array(
+    'title' => 'OpenShift API',
+    'description' => 'Configure settings for OpenShift API.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('openshift_api_settings'),
     'access arguments' => array('administer site configuration'),
