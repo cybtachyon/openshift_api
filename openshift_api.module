@@ -5,6 +5,8 @@
  * Module file for the Drupal OpenShift API module.
  */
 
+use Guzzle\Http\Message\RequestInterface;
+
 /**
  * Implements hook_menu().
  */
@@ -81,13 +83,25 @@ function openshift_api_flush_caches() {
 /**
  * Logs a debug message.
  *
- * @param string $request
- *   The message to debug.
+ * @param \Guzzle\Http\Message\RequestInterface $request
+ *   The request to debug.
  */
-function openshift_api_debug($request) {
+function openshift_api_debug(RequestInterface $request) {
   $caller = _drupal_get_last_caller(debug_backtrace());
-  watchdog('openshift_api', '<pre>@method</pre> <pre>@message</pre>', array(
+  $secret = variable_get('openshift_api_secret', '');
+  $request_redacted = str_replace($secret,
+    '__REDACTED_OPENSHIFT_API_SECRET__',
+    $request->__toString());
+  $response = $request->getResponse();
+  $response_string = $response !== NULL ? $response->__toString() : '';
+  $message = <<<WATCHDOG
+Method: <pre>@method</pre>
+Request: <pre>@request</pre>
+Response: <pre>@response</pre>
+WATCHDOG;
+  watchdog('openshift_api', $message, array(
     '@method' => $caller['function'],
-    '@message' => print_r($request, TRUE),
+    '@request' => print_r($request_redacted, TRUE),
+    '@response' => print_r($response_string, TRUE),
   ), WATCHDOG_DEBUG);
 }

@@ -173,6 +173,9 @@ class OpenShiftApi {
       $request->send();
     }
     catch (RuntimeException $exception) {
+      if (variable_get('openshift_api_debug')) {
+        openshift_api_debug($request);
+      }
       throw $exception;
     }
     if (variable_get('openshift_api_debug')) {
@@ -201,6 +204,9 @@ class OpenShiftApi {
       $request->send();
     }
     catch (RuntimeException $exception) {
+      if (variable_get('openshift_api_debug')) {
+        openshift_api_debug($request);
+      }
       throw $exception;
     }
     if (variable_get('openshift_api_debug')) {
@@ -229,6 +235,9 @@ class OpenShiftApi {
       $response = $request->send();
     }
     catch (RuntimeException $exception) {
+      if (variable_get('openshift_api_debug')) {
+        openshift_api_debug($request);
+      }
       if ($request->getResponse() !== NULL && $request->getResponse()->getStatusCode() === 404) {
         return array();
       }
@@ -261,6 +270,9 @@ class OpenShiftApi {
       $response = $request->send();
     }
     catch (RuntimeException $exception) {
+      if (variable_get('openshift_api_debug')) {
+        openshift_api_debug($request);
+      }
       throw $exception;
     }
     if (variable_get('openshift_api_debug')) {
@@ -333,6 +345,9 @@ class OpenShiftApi {
       $request->send();
     }
     catch (RuntimeException $exception) {
+      if (variable_get('openshift_api_debug')) {
+        openshift_api_debug($request);
+      }
       throw $exception;
     }
     if (variable_get('openshift_api_debug')) {
@@ -356,6 +371,9 @@ class OpenShiftApi {
       $response = $request->send();
     }
     catch (RuntimeException $exception) {
+      if (variable_get('openshift_api_debug')) {
+        openshift_api_debug($request);
+      }
       throw $exception;
     }
     if (variable_get('openshift_api_debug')) {
@@ -388,6 +406,9 @@ class OpenShiftApi {
       $response = $request->send();
     }
     catch (RuntimeException $exception) {
+      if (variable_get('openshift_api_debug')) {
+        openshift_api_debug($request);
+      }
       throw $exception;
     }
     if (variable_get('openshift_api_debug')) {
@@ -419,6 +440,9 @@ class OpenShiftApi {
       $response = $request->send();
     }
     catch (RuntimeException $exception) {
+      if (variable_get('openshift_api_debug')) {
+        openshift_api_debug($request);
+      }
       throw $exception;
     }
     if (variable_get('openshift_api_debug')) {
@@ -473,6 +497,9 @@ class OpenShiftApi {
       $response = $request->send();
     }
     catch (RuntimeException $exception) {
+      if (variable_get('openshift_api_debug')) {
+        openshift_api_debug($request);
+      }
       if ($request->getResponse() !== NULL && $request->getResponse()->getStatusCode() !== 201) {
         return array();
       }
@@ -549,6 +576,9 @@ class OpenShiftApi {
       $request->send();
     }
     catch (RuntimeException $exception) {
+      if (variable_get('openshift_api_debug')) {
+        openshift_api_debug($request);
+      }
       throw $exception;
     }
     if (variable_get('openshift_api_debug')) {
@@ -579,6 +609,9 @@ class OpenShiftApi {
       $response = $request->send();
     }
     catch (RuntimeException $exception) {
+      if (variable_get('openshift_api_debug')) {
+        openshift_api_debug($request);
+      }
       if ($request->getResponse() !== NULL && $request->getResponse()->getStatusCode() === 404) {
         return array();
       }
@@ -613,7 +646,13 @@ class OpenShiftApi {
       $response = $request->send();
     }
     catch (RuntimeException $exception) {
+      if (variable_get('openshift_api_debug')) {
+        openshift_api_debug($request);
+      }
       throw $exception;
+    }
+    if (variable_get('openshift_api_debug')) {
+      openshift_api_debug($request);
     }
     if ($body = $response->getBody()) {
       $data = drupal_json_decode($body);
@@ -668,6 +707,9 @@ class OpenShiftApi {
       $request->send();
     }
     catch (RuntimeException $exception) {
+      if (variable_get('openshift_api_debug')) {
+        openshift_api_debug($request);
+      }
       throw $exception;
     }
     if (variable_get('openshift_api_debug')) {
@@ -696,6 +738,9 @@ class OpenShiftApi {
       $request->send();
     }
     catch (RuntimeException $exception) {
+      if (variable_get('openshift_api_debug')) {
+        openshift_api_debug($request);
+      }
       throw $exception;
     }
     if (variable_get('openshift_api_debug')) {
@@ -726,6 +771,9 @@ class OpenShiftApi {
       $response = $request->send();
     }
     catch (RuntimeException $exception) {
+      if (variable_get('openshift_api_debug')) {
+        openshift_api_debug($request);
+      }
       if ($request->getResponse() !== NULL && $request->getResponse()->getStatusCode() === 404) {
         return array();
       }
