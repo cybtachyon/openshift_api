@@ -6,6 +6,85 @@
  */
 
 /**
+ * Implements hook_requirements().
+ */
+function openshift_api_requirements($phase) {
+  $requirements = array();
+
+  if ($phase === 'runtime') {
+    $requirements['openshift_api_composer'] = array(
+      'title' => t('Composer Manager'),
+      'value' => module_exists('composer_manager') ? t('Enabled') : t('Not enabled'),
+      'description' => t('Validates that <a href="@link">Composer Manager</a> is enabled.', array(
+        '@link' => 'https://www.drupal.org/project/composer_manager',
+      )),
+      'severity' => REQUIREMENT_INFO,
+    );
+
+    $guzzle = class_exists('Guzzle\Http\Client');
+    $guzzle_severity = $guzzle ? REQUIREMENT_OK : REQUIREMENT_ERROR;
+    $requirements['openshift_api_guzzle'] = array(
+      'title' => t('Guzzle Library'),
+      'value' => $guzzle ? t('Installed') : t('Not installed'),
+      'description' => t('Validates that the <a href="@link">Guzzle Library</a> is installed via Composer Manager or another module.', array(
+        '@link' => 'https://packagist.org/packages/guzzle/guzzle',
+      )),
+      'severity' => $guzzle_severity,
+    );
+
+    $osa_origin = variable_get('openshift_api_origin', OpenShiftApi::$defaultOrigin);
+    $requirements['openshift_api_origin'] = array(
+      'title' => t('OpenShift API Origin'),
+      'value' => $osa_origin,
+      'description' => t('The OpenShift API Origin server. Defaults to <a href="@origin">@origin</a>.', array(
+        '@origin' => OpenShiftApi::$defaultOrigin,
+      )),
+      'severity' => REQUIREMENT_INFO,
+    );
+
+    $osa_secret = variable_get('openshift_api_secret');
+    $requirements['openshift_api_secret'] = array(
+      'title' => t('OpenShift API Secret'),
+      'value' => !empty($osa_secret)
+        ? t('Secret provided')
+        : t('No secret present in @url', array(
+          '@url' => url('admin/config/services/openshift_api'),
+        )),
+      'description' => t('The <a href="@link">OpenShift API Secret</a>.', array(
+        '@link' => 'https://docs.okd.io/latest/architecture/additional_concepts/authentication.html',
+      )),
+      'severity' => !empty($osa_secret) ? REQUIREMENT_OK : REQUIREMENT_ERROR,
+    );
+
+    $osa_debug = variable_get('openshift_api_debug');
+    $requirements['openshift_api_debug'] = array(
+      'title' => t('OpenShift API Debug'),
+      'value' => to_boolean($osa_debug) ? 'Enabled' : 'Disabled',
+      'description' => t('The current OpenShift API Module debug setting.'),
+      'severity' => $osa_debug ? REQUIREMENT_WARNING : REQUIREMENT_INFO,
+    );
+
+    $requirements['openshift_api_os_version'] = array(
+      'title' => t('OpenShift API Version'),
+      'value' => '',
+    );
+    try {
+      $osapi = new OpenShiftApi();
+      $version = $osapi->getVersion();
+    }
+    catch (Exception $exception) {
+      watchdog_exception('openshift_api', $exception);
+      $requirements['openshift_api_os_version']['value'] = 'Error getting a response from the server.';
+      $requirements['openshift_api_os_version']['severity'] = REQUIREMENT_ERROR;
+      return $requirements;
+    }
+    $requirements['openshift_api_os_version']['value'] = !empty($version['gitVersion']) ? $version['gitVersion'] : print_r($version, TRUE);
+  }
+
+  return $requirements;
+}
+
+/**
  * Implements hook_uninstall().
  */
 function openshift_api_uninstall() {
