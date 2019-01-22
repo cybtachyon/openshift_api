@@ -8,7 +8,8 @@
 /**
  * Guzzle usage, for now.
  *
- * @TODO use Drupal\HttpClient instead of Guzzle\Http\Client.
+ * @todo use Drupal\HttpClient instead of Guzzle\Http\Client.
+ * @todo Replace double-use of logging with Finally keyword in PHP>5.4.
  */
 use Guzzle\Http\Client;
 use Guzzle\Http\ClientInterface;
@@ -17,6 +18,13 @@ use Guzzle\Http\ClientInterface;
  * Class OpenShiftApi.
  */
 class OpenShiftApi {
+
+  /**
+   * Default OpenShift Origin.
+   *
+   * @var string
+   */
+  public static $defaultOrigin = 'https://openshift.redhat.com:8443';
 
   /**
    * OpenShift JWT required keys.
@@ -50,7 +58,7 @@ class OpenShiftApi {
    * @todo Allow this to be generated from cert queries via OpenShift API.
    * @todo Add support for OAuth Access Tokens.
    *
-   * @see https://docs.openshift.org/latest/architecture/additional_concepts/authentication.html#api-authentication
+   * @see https://docs.okd.io/latest/architecture/additional_concepts/authentication.html#api-authentication
    */
   private $apiSecret;
 
@@ -72,7 +80,7 @@ class OpenShiftApi {
    */
   public function __construct(ClientInterface $client = NULL) {
     $this->apiSecret = variable_get('openshift_api_secret', '');
-    $base_url = variable_get('openshift_api_origin', 'https://openshift.redhat.com:8443');
+    $base_url = variable_get('openshift_api_origin', static::$defaultOrigin);
     $base_url = trim($base_url, '/');
 
     try {
@@ -99,7 +107,38 @@ class OpenShiftApi {
   }
 
   /**
+   * Returns the current OpenShift and Kubernetes version.
+   *
+   * @return array|mixed
+   *   The current versions or an empty array if not available.
+   */
+  public function getVersion() {
+    $request = $this->client->get('version/openshift');
+    try {
+      $response = $request->send();
+    }
+    catch (RuntimeException $exception) {
+      if (variable_get('openshift_api_debug')) {
+        openshift_api_debug($request);
+      }
+      if ($request->getResponse() !== NULL && $request->getResponse()->getStatusCode() === 404) {
+        return array();
+      }
+      throw $exception;
+    }
+    if (variable_get('openshift_api_debug')) {
+      openshift_api_debug($request);
+    }
+    if ($body = $response->getBody()) {
+      return drupal_json_decode($body);
+    }
+    return array();
+  }
+
+  /**
    * Methods relating to OpenShift build configs.
+   *
+   * @see https://docs.okd.io/latest/rest_api/oapi/v1.BuildConfig.html
    *
    * @ingroup build_config
    * @{
@@ -144,8 +183,7 @@ class OpenShiftApi {
    * $osa->createBuildConfig('p12345', $config);
    * @endcode
    *
-   * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#v1-buildconfig
-   * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#create-a-buildconfig-2
+   * @see https://docs.okd.io/latest/rest_api/oapi/v1.BuildConfig.html#Post-oapi-v1-namespaces-namespace-buildconfigs
    */
   public function createBuildConfig($pid, array $config, $use_defaults = TRUE) {
     $headers = array(
@@ -197,6 +235,8 @@ class OpenShiftApi {
    *
    * @throws RuntimeException
    *   Signifies an issue has occurred generating an HTTP Request.
+   *
+   * @see https://docs.okd.io/latest/rest_api/oapi/v1.BuildConfig.html#Delete-oapi-v1-namespaces-namespace-buildconfigs-name
    */
   public function deleteBuildConfig($pid, $build_id) {
     $request = $this->client->delete("oapi/v1/namespaces/$pid/buildconfigs/$build_id");
@@ -228,6 +268,8 @@ class OpenShiftApi {
    *
    * @throws RuntimeException
    *   Signifies an issue has occurred generating an HTTP Request.
+   *
+   * @see https://docs.okd.io/latest/rest_api/oapi/v1.BuildConfig.html#Get-oapi-v1-namespaces-namespace-buildconfigs-name
    */
   public function getBuildConfig($pid, $build_id) {
     $request = $this->client->get("oapi/v1/namespaces/$pid/buildconfigs/$build_id");
@@ -263,6 +305,8 @@ class OpenShiftApi {
    *
    * @throws RuntimeException
    *   Signifies an issue has occurred generating an HTTP Request.
+   *
+   * @see https://docs.okd.io/latest/rest_api/oapi/v1.BuildConfig.html#Get-oapi-v1-namespaces-namespace-buildconfigs
    */
   public function getBuildConfigs($pid) {
     $request = $this->client->get("oapi/v1/namespaces/$pid/builds");
@@ -320,8 +364,7 @@ class OpenShiftApi {
    * set to NULL. Currently, no keys for Open Shift build configs support a NULL
    * value so we're good to use NULL values with PATCH to update build configs.
    *
-   * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#v1-buildconfig
-   * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#partially-update-the-specified-buildconfig
+   * @see https://docs.okd.io/latest/rest_api/oapi/v1.BuildConfig.html#Put-oapi-v1-namespaces-namespace-buildconfigs-name
    */
   public function setBuildConfig($pid, $config_name, array $config) {
     if (!array_walk_recursive($config, function (&$value, $key) {
@@ -364,6 +407,8 @@ class OpenShiftApi {
    *
    * @return array
    *   Array of build items
+   *
+   * @see https://docs.okd.io/latest/rest_api/oapi/v1.Build.html#Get-oapi-v1-namespaces-namespace-builds
    */
   public function getBuilds($pid) {
     $request = $this->client->get("oapi/v1/namespaces/$pid/builds");
@@ -399,6 +444,8 @@ class OpenShiftApi {
    *
    * @throws RuntimeException
    *   Signifies an issue has occurred generating an HTTP Request.
+   *
+   * @see https://docs.okd.io/latest/rest_api/oapi/v1.Build.html#Get-oapi-v1-namespaces-namespace-builds-name-log
    */
   public function getBuildLog($pid, $build_name) {
     $request = $this->client->get("oapi/v1/namespaces/$pid/builds/$build_name/log");
@@ -433,6 +480,8 @@ class OpenShiftApi {
    *
    * @throws RuntimeException
    *   Signifies an issue has occurred generating an HTTP Request.
+   *
+   * @see https://docs.okd.io/latest/rest_api/oapi/v1.Build.html#Get-oapi-v1-namespaces-namespace-builds-name
    */
   public function getBuildDetail($pid, $build_name) {
     $request = $this->client->get("oapi/v1/namespaces/$pid/builds/$build_name");
@@ -472,8 +521,7 @@ class OpenShiftApi {
    * @throws RuntimeException
    *   Signifies an issue has occurred generating an HTTP Request.
    *
-   * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#create-instantiate-of-a-buildrequest
-   * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#v1-buildrequest
+   * @see https://docs.okd.io/latest/rest_api/oapi/v1.BuildConfig.html#Post-oapi-v1-namespaces-namespace-buildconfigs-name-instantiate
    */
   public function instantiateBuild($pid, $config_name, array $config, $use_defaults = TRUE) {
     $headers = array(
@@ -519,7 +567,10 @@ class OpenShiftApi {
    *
    * Methods related to Open Shift Image Streams.
    *
+   * @see https://docs.okd.io/latest/rest_api/oapi/v1.ImageStream.html
+   *
    * @ingroup image_stream
+   * @{
    */
 
   /**
@@ -547,8 +598,7 @@ class OpenShiftApi {
    * $osa->createBuildConfig('p12345', $config);
    * @endcode
    *
-   * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#v1-imagestream
-   * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#create-an-imagestream
+   * @see https://docs.okd.io/latest/rest_api/oapi/v1.ImageStream.html#Post-oapi-v1-namespaces-namespace-imagestreams
    */
   public function createImageStream($pid, array $config, $use_defaults = TRUE) {
     $headers = array(
@@ -563,7 +613,6 @@ class OpenShiftApi {
           'build' => $config['metadata']['name'],
         ),
       ),
-      'spec' => array(),
       'status' => array(
         'dockerImageRepository' => '',
       ),
@@ -601,7 +650,7 @@ class OpenShiftApi {
    * @throws RuntimeException
    *   Signifies an issue has occurred generating an HTTP Request.
    *
-   * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#list-or-watch-objects-of-kind-imagestream
+   * @see https://docs.okd.io/latest/rest_api/oapi/v1.ImageStream.html#Get-oapi-v1-namespaces-namespace-imagestreams-name
    */
   public function getImageStream($pid, $stream_id) {
     $request = $this->client->get("oapi/v1/namespaces/$pid/imagestreams/$stream_id");
@@ -638,7 +687,7 @@ class OpenShiftApi {
    * @throws RuntimeException
    *   Signifies an issue has occurred generating an HTTP Request.
    *
-   * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#list-or-watch-objects-of-kind-imagestream
+   * @see https://docs.okd.io/latest/rest_api/oapi/v1.ImageStream.html#Get-oapi-v1-namespaces-namespace-imagestreams
    */
   public function getImageStreams($pid) {
     $request = $this->client->get("oapi/v1/namespaces/$pid/imagestreams");
@@ -666,7 +715,10 @@ class OpenShiftApi {
    *
    * Methods related to Open Shift Source Secrets.
    *
+   * @see https://docs.okd.io/latest/architecture/additional_concepts/authentication.html
+   *
    * @ingroup secrets
+   * @{
    */
 
   /**
@@ -762,8 +814,6 @@ class OpenShiftApi {
    *
    * @throws RuntimeException
    *   Signifies an issue has occurred generating an HTTP Request.
-   *
-   * @see https://docs.openshift.org/latest/rest_api/openshift_v1.html#list-or-watch-objects-of-kind-imagestream
    */
   public function getSourceSecret($pid, $secret_id) {
     $request = $this->client->get("api/v1/namespaces/$pid/secrets/$secret_id");
@@ -792,10 +842,11 @@ class OpenShiftApi {
    * @}
    *
    * @ingroup utility
+   * @{
    */
 
   /**
-   * Returns an OpenShift compatbile timestamp.
+   * Returns an OpenShift compatible timestamp.
    *
    * @param int $ts
    *   An optional integer timestamp to convert.
