@@ -46,10 +46,10 @@ function openshift_api_requirements($phase) {
     $requirements['openshift_api_secret'] = array(
       'title' => t('OpenShift API Secret'),
       'value' => !empty($osa_secret)
-        ? t('Secret provided')
-        : t('No secret present in @url', array(
-          '@url' => url('admin/config/services/openshift_api'),
-        )),
+      ? t('Secret provided')
+      : t('No secret present in @url', array(
+        '@url' => url('admin/config/services/openshift_api'),
+      )),
       'description' => t('The <a href="@link">OpenShift API Secret</a>.', array(
         '@link' => 'https://docs.okd.io/latest/architecture/additional_concepts/authentication.html',
       )),
